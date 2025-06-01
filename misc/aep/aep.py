@@ -100,12 +100,12 @@ def rom_verify(addr, data, chunk_size=48):
 def rom_clear():
     CLEAR_BLOCK = 48
 
-    print('CLEARING...')
+    print('SUCC: CLEARING...')
     for i in range(0, 0xFFFF, CLEAR_BLOCK):
         rom_write(i, [0xFF] * CLEAR_BLOCK)
         print('  0x{:04X}'.format(i))
 
-    print('CHECKING...')
+    print('SUCC: CHECKING...')
     for i in range(0, 0xFFFF, CLEAR_BLOCK):
         data = rom_read(i, CLEAR_BLOCK)
         if any([x != 0xFF for x in data]):
