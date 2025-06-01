@@ -13,7 +13,7 @@ READY = 0xAA
 EOC = 0xFF
 
 if len(sys.argv) != 3:
-    print('Not enough arguments.')
+    print('ERR: Not enough arguments.')
     print('usage: aep.py <baud rate> <port>')
     exit(1)
 
@@ -54,7 +54,7 @@ def rom_read(addr, length):
 
     eoc = se_read()
     if eoc != EOC:
-        raise Exception('Invalid EOC 0x{:02X}'.format(eoc))
+        raise Exception('ERR: Invalid EOC 0x{:02X}'.format(eoc))
 
     return data
 
@@ -69,7 +69,7 @@ def rom_write(addr, data):
 
     eoc = se_read()
     if eoc != EOC:
-        raise Exception('Invalid EOC 0x{:02X}'.format(eoc))
+        raise Exception('ERR: Invalid EOC 0x{:02X}'.format(eoc))
 
 def rom_write_chunked(addr, data, chunk_size=16):
     chunks = [data[x:x+chunk_size] for x in range(0, len(data), chunk_size)]
@@ -119,7 +119,7 @@ while se_read() != READY:
     pass
 
 while True:
-    line = input('> ')
+    line = input('$$$ ')
     tokens = line.split(' ')
     cmd = tokens[0].lower()
 
@@ -129,25 +129,25 @@ while True:
 > ping                          : checks that programmer is ready
 > read <addr>                   : read a single byte
 > read <addr> <len>             : read n bytes
-> write <addr> <data>           : write a single byte
+> write <addr> <data>           : writes a single byte
 > write <addr> <file> <verify?> : writes a file at the specified address
 > image <addr> <path>           : writes an image at the specified address
 > clear                         : zeroes out entire ROM
-> quit                          : quit
+> exit                          : quit
         ''')
-    elif cmd == 'quit':
+    elif cmd == 'exit':
         exit(0)
     elif cmd == 'clear':
         rom_clear()
     elif cmd == 'read':
         if len(tokens) == 1:
-            print('Not enough arguments')
+            print('ERR: Not enough arguments')
             continue
 
         try:
             addr = int(tokens[1], 0)
         except:
-            print('Invalid address')
+            print('ERR: Invalid address')
             continue
 
         n = 1
@@ -156,7 +156,7 @@ while True:
             try:
                 n = int(tokens[2], 0)
             except:
-                print('Invalid length')
+                print('ERR: Invalid length')
                 continue
 
         # send command
@@ -169,7 +169,7 @@ while True:
             sys.stdout.write('\n')
     elif cmd == 'write':
         if len(tokens) == 1:
-            print('Not enough arguments')
+            print('ERR: Not enough arguments')
             continue
 
         try:
@@ -194,11 +194,11 @@ while True:
                 with open(path, 'rb') as f:
                     data = f.read()
             except Exception as e:
-                print('Error opening file: {}'.format(e))
+                print('ERR: Error opening file: {}'.format(e))
                 continue
 
         if addr + len(data) >= 2 ** 16:
-            print('Too large to write')
+            print('ERR: Too large to write')
             continue
 
         for base, last in rom_write_chunked(addr, data):
@@ -219,13 +219,13 @@ while True:
         try:
             addr = int(tokens[1], 0)
         except:
-            print('Invalid address')
+            print('ERR: Invalid address')
             continue
 
         im = Image.open(tokens[2]).convert('RGB')
 
         if im.size != (208, 240):
-            print('Invalid image size, can only accept 208x240')
+            print('ERR: Invalid image size, can only accept 208x240')
             continue
 
         pixels = list(im.getdata())
@@ -260,7 +260,7 @@ while True:
         se_write16(3)
         res = se_read()
         if res != EOC:
-            print('Error, expected 0x{:02X} but got 0x{:02X}'.format(EOC, res))
+            print('ERR: Error, expected 0x{:02X} but got 0x{:02X}'.format(EOC, res))
             exit(1)
         else:
             print('pong!')
